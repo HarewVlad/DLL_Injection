@@ -28,16 +28,16 @@ int main(int argc, char **argv)
 	// To get PID //
 	HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
 	if (Process32First(snap, &entry))
-    {
-        while (Process32Next(snap, &entry))
-        {
-        	if (stricmp(entry.szExeFile, argv[1]) == 0)
-        	{
-        		process = OpenProcess(PROCESS_ALL_ACCESS, FALSE, entry.th32ProcessID);
-        	}
-        }
-    }
-    //
+    	{
+        	while (Process32Next(snap, &entry))
+		{
+			if (stricmp(entry.szExeFile, argv[1]) == 0)
+			{
+				process = OpenProcess(PROCESS_ALL_ACCESS, FALSE, entry.th32ProcessID);
+			}
+		}
+    	}
+    	//
 
 	if (process == nullptr)
 		fatal("main: OpenProcess error");
