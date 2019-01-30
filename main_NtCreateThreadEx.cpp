@@ -43,20 +43,20 @@ void fatal(const char *fmt, ...)
     exit(1);
 }
 
-DWORD NtCreateThreadEx(PCWSTR pszLibFile, DWORD dwProcessId)
+DWORD NtCreateThreadEx(PCWSTR lib_name, DWORD PID)
 {
 	HANDLE spy_thread = NULL;
 	NtCreateThreadExBuffer ntbuffer;
-	LARGE_INTEGER dwTmp1 = { 0 };
-	LARGE_INTEGER dwTmp2 = { 0 };
+	LARGE_INTEGER temp1 = { 0 };
+	LARGE_INTEGER temp2 = { 0 };
 
 	memset(&ntbuffer, 0, sizeof(NtCreateThreadExBuffer));
 
-	DWORD dwSize = (lstrlenW(pszLibFile) + 1) * sizeof(wchar_t);
+	DWORD dwSize = (lstrlenW(lib_name) + 1) * sizeof(wchar_t);
 
 	HANDLE process = OpenProcess(
 		PROCESS_ALL_ACCESS,
-		FALSE, dwProcessId);
+		FALSE, PID);
 
 	if (process == NULL)
 		fatal("main: process == NULL");
@@ -65,7 +65,7 @@ DWORD NtCreateThreadEx(PCWSTR pszLibFile, DWORD dwProcessId)
 	if (p_dllname == NULL)
 		fatal("main: p_dllname == NULL");
 
-	if (!WriteProcessMemory(process, p_dllname, (LPVOID)pszLibFile, dwSize, NULL))
+	if (!WriteProcessMemory(process, p_dllname, (LPVOID)lib_name, dwSize, NULL))
 		fatal("main: Read count = 0");
 
 	PTHREAD_START_ROUTINE NtCreateThreadEx_addr = (PTHREAD_START_ROUTINE)GetProcAddress(GetModuleHandle(TEXT("ntdll.dll")), "NtCreateThreadEx");
@@ -75,11 +75,11 @@ DWORD NtCreateThreadEx(PCWSTR pszLibFile, DWORD dwProcessId)
 		ntbuffer.Size = sizeof(struct NtCreateThreadExBuffer);
 		ntbuffer.Unknown1 = 0x10003;
 		ntbuffer.Unknown2 = 0x8;
-		ntbuffer.Unknown3 = (DWORD*)&dwTmp2;
+		ntbuffer.Unknown3 = (DWORD*)&temp2;
 		ntbuffer.Unknown4 = 0;
 		ntbuffer.Unknown5 = 0x10004;
 		ntbuffer.Unknown6 = 4;
-		ntbuffer.Unknown7 = (DWORD*)&dwTmp1;
+		ntbuffer.Unknown7 = (DWORD*)&temp1;
 		ntbuffer.Unknown8 = 0;
 
 		LPFUN_NtCreateThreadEx funNtCreateThreadEx = (LPFUN_NtCreateThreadEx)NtCreateThreadEx_addr;
